@@ -29,7 +29,6 @@ export default function SensorCard({ title, value, unit, icon }) {
       <div className="flex items-center justify-between">
         <h3 className="text-white/80 font-medium">{title}</h3>
 
-        {/* icon ikut warna */}
         <span className={`text-2xl ${colorMap[title]}`}>
           {icon}
         </span>

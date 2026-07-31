@@ -8,7 +8,7 @@ export default function Header() {
       className="mb-16"
     >
       <h1 className="text-5xl font-bold text-white drop-shadow-lg leading-tight">
-        Smart Dracaena Trifasciata Monitoring
+        Smart Irigation
       </h1>
       <p className="mt-4 text-lg text-green-100 drop-shadow">
         Real-time IoT plant health analystic dashboard</p>
