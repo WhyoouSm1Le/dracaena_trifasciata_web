@@ -1,5 +1,6 @@
-export default function SensorCard({ title, value, unit, icon }) {
+import { motion } from "framer-motion";
 
+export default function SensorCard({ title, value, unit, icon }) {
   const colorMap = {
     Temperature: "text-red-300",
     Humidity: "text-blue-300",

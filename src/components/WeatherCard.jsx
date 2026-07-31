@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 export default function WeatherCard({ weather }) {
   if (!weather) return null;
 
