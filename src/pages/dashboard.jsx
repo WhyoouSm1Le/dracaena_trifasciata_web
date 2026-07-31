@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import apiService from "../services/apiService"; 
 import { fetchWeather } from "../services/weather";
@@ -26,8 +26,9 @@ export default function Dashboard() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
 
-  // Fungsi untuk hitung & mapping data dari ThingSpeak ke format Chart lu
-  const fetchThingSpeakData = async () => {
+  // Fungsi untuk hitung & mapping data dari ThingSpeak ke format Chart
+  // Dibungkus useCallback biar ga kena warning linter exhaustive-deps
+  const fetchThingSpeakData = useCallback(async () => {
     // JIKA LAGI NYALAIN/MATIIN TOMBOL, JANGAN AMBIL DATA DULU BIAR GAK TABRAKAN
     if (isWriting) return; 
 
@@ -73,19 +74,20 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Gagal sinkronisasi data ThingSpeak:", error);
     }
-  };
+  }, [isWriting]);
 
-  // FUNGSI AKSI: Kontrol Saklar Pompa (Optimistic Update) -> Menembak Field 5
+  // FUNGSI AKSI: Kontrol Saklar Pompa (Optimistic Update)
   const handleTogglePompa = async () => {
     if (loadingAction) return;
+    const statusBaru = !pompaNyala;
+
     try {
       setLoadingAction(true);
       setIsWriting(true); // Kunci auto-fetch!
       
-      const statusBaru = !pompaNyala;
       setPompaNyala(statusBaru); // UI langsung diubah instan biar responsif
 
-      // Sesuai real hardware: Pompa di-handle oleh updateField5
+      // Sesuai real hardware: Pompa di-handle oleh updateField4
       const response = await apiService.updateField4(statusBaru ? 1 : 0);
       
       if (response === 0) {
@@ -94,7 +96,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Gagal mengubah status pompa:", error);
-      setPompaNyala(pompaNyala); // Rollback jika error network
+      setPompaNyala(!statusBaru); // FIX: Rollback status jika error network
     } finally {
       // Kasih jeda 15 detik (15000ms) biar aman dari rate-limit ThingSpeak gratisan
       setTimeout(() => {
@@ -104,17 +106,18 @@ export default function Dashboard() {
     }
   };
 
-  // FUNGSI AKSI: Kontrol Saklar Kipas (Optimistic Update) -> Menembak Field 4
+  // FUNGSI AKSI: Kontrol Saklar Kipas (Optimistic Update)
   const handleToggleKipas = async () => {
     if (loadingAction) return;
+    const statusBaru = !kipasNyala;
+
     try {
       setLoadingAction(true);
       setIsWriting(true); // Kunci auto-fetch!
       
-      const statusBaru = !kipasNyala;
       setKipasNyala(statusBaru); // UI langsung diubah instan
 
-      // Sesuai real hardware: Kipas di-handle oleh updateField4
+      // Sesuai real hardware: Kipas di-handle oleh updateField5
       const response = await apiService.updateField5(statusBaru ? 1 : 0);
       
       if (response === 0) {
@@ -123,7 +126,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Gagal mengubah status kipas:", error);
-      setKipasNyala(kipasNyala); // Rollback jika error network
+      setKipasNyala(!statusBaru); // FIX: Rollback status jika error network
     } finally {
       setTimeout(() => {
         setIsWriting(false);
@@ -152,7 +155,7 @@ export default function Dashboard() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [isWriting, pompaNyala, kipasNyala]); 
+  }, [fetchThingSpeakData]); 
 
   // EFFECT UNTUK WEATHER
   useEffect(() => {
